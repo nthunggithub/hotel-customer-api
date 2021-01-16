@@ -23,7 +23,7 @@ router.post("/api/auth/signin", controller.signin);
 
 router.post("/api/auth/changeinfor", controller.changeInfor);
 
-
+router.post("/api/auth/changepassword", controller.changePassword);
 
 
 router.post("/api/auth/signingoogle", controller.verifyTokenGoogle);

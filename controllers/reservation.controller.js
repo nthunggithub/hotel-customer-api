@@ -11,17 +11,17 @@ exports.createReservation = async (req, res) => {
         const arrivalDateGetTime = new Date(arrivalDate).getTime();
         const departureDateGetTime = new Date(departureDate).getTime();
 
-        if (departureDateGetTime - arrivalDateGetTime < 86000) {
+        if (departureDateGetTime - arrivalDateGetTime < 0) {
             error.date = 'Cannot book fewer than 1 days';
             errorCount++;
-            return res.status(400).json({ errorCount: errorCount, error: error });
+            return res.status(400).json({ message: "Chọn ngày bắt đầu lớn hơn ngày kết thúc" });
         }
 
-        if (departureDateGetTime - arrivalDateGetTime > 2592000000) {
-            error.date = 'Cannot book more than 30 days';
-            errorCount++;
-            return res.status(400).json({ errorCount: errorCount, error: error });
-        }
+        // if (departureDateGetTime - arrivalDateGetTime > 2592000000) {
+        //     error.date = 'Cannot book more than 30 days';
+        //     errorCount++;
+        //     return res.status(400).json({ errorCount: errorCount, error: error });
+        // }
 
         let room = await query(`select * from phong where MaP = ${roomId} `)
         if (room.length == 0) {

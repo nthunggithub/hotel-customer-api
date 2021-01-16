@@ -102,6 +102,7 @@ exports.getRoomInfo = async (req, res) => {
 exports.postcomment = async (req, res) => {
     try {
         await query(`insert into binhluan set NgayBL = "${new Date().toISOString().substring(0, 10)}", NoiDung = "${req.body.comment}", MaKH = ${req.body.MaKH}, MaP = ${req.body.MaP} `)
+        res.status(200).json({message: "Bình luận thành công"})
     } catch (error) {
         res.status(200).json({ message: "lỗi bình luận" })
     }
@@ -113,5 +114,14 @@ exports.getcommentlist = async (req, res)=>{
         res.status(200).json(data);
     } catch (error) {
         res.status(200).json({ message: "lỗi lấy bình luận" })
+    }
+}
+
+exports.getphieudatphong = async (req, res) =>{
+    try {
+        let data = await query(`select * from phieudatphong as pdp, ctphieudatphong as ctp where pdp.MaKH = ${req.params.id} and pdp.MaPDP = ctp.MaPDP `)
+        res.status(200).json(data)
+    } catch (error) {
+        res.status(200).json({ message: "Lỗi lấy danh sách phiếu đặt phòng" })
     }
 }

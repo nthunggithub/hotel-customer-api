@@ -9,4 +9,5 @@ router.post("/searchRoom", hotelController.searchRoom);
 router.get("/getRoomInfo/:roomId", hotelController.getRoomInfo);
 router.post("/postcomment", hotelController.postcomment);
 router.get("/getcommentlist/:id", hotelController.getcommentlist);
+router.get("/getphieudatphong/:id", hotelController.getphieudatphong);
 module.exports = router;

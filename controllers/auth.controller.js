@@ -13,7 +13,7 @@ module.exports.getUser = async function (req, res, next) {
     //let user = await query(`select * from users where id = ${req.userId}`);
     //user = user[0];
     let user = req.user;
-    
+
     res.status(200).send(user)
   } catch (error) {
     res.status(500).send({ message: "loi lay user" })
@@ -25,7 +25,7 @@ module.exports.signup = async function (req, res, next) {
     if (data.length === 0) {
       //const secretToken = randomstring.generate();
       let taik = await query(`insert into taikhoan set TenTaiKhoan = '${req.body.name}', Email = '${req.body.email}', MatKhau= '${bcrypt.hashSync(req.body.password, 8)}', TrangThai = ${1}`)
-      await query (`insert into khachang set MaTK = ${taik.insertId}`);
+      await query(`insert into khachang set MaTK = ${taik.insertId}`);
       //await query(`insert into user_roles set userId = ${parseInt(user.insertId)}, roleId = ${1}`);
       // const html = `Xin chào ${req.body.name},
       //   <br/>
@@ -45,7 +45,7 @@ module.exports.signup = async function (req, res, next) {
       return res.status(200).json({ message: "Email is exist!" });
     }
   } catch (error) {
-    res.status(200).json({ message: error.message});
+    res.status(200).json({ message: error.message });
   }
 };
 
@@ -76,7 +76,7 @@ module.exports.forgotpasswordpost = async function (req, res, next) {
     const user = await query(`select * from taikhoan where Email = '${email}'`)
 
     if (user.length === 0) {
-      return res.status(200).json({message: "Email không tồn tại"})
+      return res.status(200).json({ message: "Email không tồn tại" })
     }
 
     secretToken = randomstring.generate();
@@ -108,7 +108,7 @@ module.exports.forgotpasswordverify = async function (req, res, next) {
   try {
     const updateUser = await query(`update taikhoan set MatKhau = '${bcrypt.hashSync("123456", bcrypt.genSaltSync(8))}', secretToken = "" where secretToken = '${req.params.id}'`)
     // var user = await query(`select * from users where id = ${updateUser}`);
-    res.status(200).json({'message': "Thay đổi mật khẩu thành công"});
+    res.status(200).json({ 'message': "Thay đổi mật khẩu thành công" });
   } catch (err) {
     next(err);
   }
@@ -122,7 +122,7 @@ exports.signin = async (req, res) => {
       return res.status(404).send({ message: "User Not found." });
     }
 
-    if(user[0].TrangThai == 0){
+    if (user[0].TrangThai == 0) {
       return res.status(200).send({ message: "Vui lòng active tài khoản" });
     }
     user = user[0];
@@ -152,15 +152,50 @@ exports.signin = async (req, res) => {
   }
 };
 
-exports.changeInfor = async (req, res)=>{
+exports.changeInfor = async (req, res) => {
   try {
     let user = await query(`select * from taikhoan where MaTK =${req.body.MaTK}`)
-    if(user.length === 0){
+    if (user.length === 0) {
       return res.status(200).send({ message: "Không tìm thấy user" });
     }
     // await query(`update taikhoan set TenTaiKhoan = ${req.body.TenTaiKhoan} where MaTK = ${req.body.id}`)
     await query(`update khachang set HoTen = "${req.body.HoTen}", GioiTinh = ${req.body.GioiTinh}, NgaySinh = "${req.body.NgaySinh}", SDT = "${req.body.SDT}", DiaChi = "${req.body.DiaChi}" where MaKH = ${req.body.MaKH}`)
     return res.status(200).send({ message: "Chỉnh sửa thành công" });
+  } catch (error) {
+    res.status(200).send({ message: error.message });
+  }
+}
+
+exports.changePassword = async (req, res) => {
+  try {
+    let user = await query(`select * from taikhoan where MaTK =${req.body.MaTK}`)
+    if (user.length === 0) {
+      return res.status(200).send({ message: "Không tìm thấy user" });
+    }
+    user = user[0];
+    let passwordIsValid = bcrypt.compareSync(
+      req.body.oldPassword,
+      user.MatKhau
+    );
+
+    if (!passwordIsValid) {
+      return res.status(401).send({
+        message: "Mật khẩu cũ không đúng"
+      });
+    }
+
+    let token = jwt.sign({ id: user.MaTK, TenTaiKhoan: user.TenTaiKhoan }, config.secret, {
+      expiresIn: 86400 // 24 hours
+    });
+
+    await query(`update taikhoan set MatKhau = "${bcrypt.hashSync(req.body.newPassword, bcrypt.genSaltSync(8))}" where MaTK = ${req.body.MaTK}`)
+    return res.status(200).send({
+      id: user.MaTK,
+      TenTaiKhoan: user.TenTaiKhoan,
+      Email: user.Email,
+      accessToken: token,
+      message: "Mật khẩu đã thay đổi"
+    });
   } catch (error) {
     res.status(200).send({ message: error.message });
   }
@@ -195,7 +230,7 @@ exports.verifyTokenGoogle = async (req, res, next) => {
 
     if (googleData.status === 200) {
       const user = await findOrCreateUser(googleData.data.email, googleData.data.name);
-      if(user.state == 0){
+      if (user.state == 0) {
         return res.status(200).send({ message: "Vui lòng active tài khoản" });
       }
       const payload = { id: user.id, fullName: user.fullName };
@@ -215,7 +250,7 @@ exports.verifyTokenFacebook = async (req, res, next) => {
       let facebookData = await axios.get(`https://graph.facebook.com/${fbObject.userID}?fields=id,name,email&access_token=${fbObject.accessToken}`)
       if (facebookData.status === 200) {
         const user = await findOrCreateUser(facebookData.data.email, facebookData.data.name);
-        if(user.state == 0){
+        if (user.state == 0) {
           return res.status(200).send({ message: "Vui lòng active tài khoản" });
         }
         const payload = { id: user.id, fullName: user.fullName };
