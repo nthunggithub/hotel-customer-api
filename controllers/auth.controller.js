@@ -81,7 +81,7 @@ module.exports.forgotpasswordpost = async function (req, res, next) {
 
     secretToken = randomstring.generate();
 
-    await query(`update taikhoan set secretToken = '${secretToken}' where secretToken = '${email}'`)
+    await query(`update taikhoan , khachang set secretToken = '${secretToken}' where Email = '${email}'`)
 
     const html = `Xin chào ${user.TenTaiKhoan},
     <br/>
@@ -108,9 +108,9 @@ module.exports.forgotpasswordverify = async function (req, res, next) {
   try {
     const updateUser = await query(`update taikhoan set MatKhau = '${bcrypt.hashSync("123456", bcrypt.genSaltSync(8))}', secretToken = "" where secretToken = '${req.params.id}'`)
     // var user = await query(`select * from users where id = ${updateUser}`);
-    res.status(200).json({ 'message': "Thay đổi mật khẩu thành công" });
+    res.status(200).json({ message: "Thay đổi mật khẩu thành công" });
   } catch (err) {
-    next(err);
+    res.status(401).json({ message: "Lỗi verify reset mật khẩu" });
   }
 }
 
@@ -119,7 +119,7 @@ exports.signin = async (req, res) => {
     let user = await query(`select * from taikhoan where Email = '${req.body.email}'`)
 
     if (user.length === 0) {
-      return res.status(404).send({ message: "User Not found." });
+      return res.status(404).send({ message: "User không tìm thấy" });
     }
 
     if (user[0].TrangThai == 0) {
@@ -133,7 +133,7 @@ exports.signin = async (req, res) => {
 
     if (!passwordIsValid) {
       return res.status(401).send({
-        message: "Invalid Password!"
+        message: "Mật khẩu không đúng!"
       });
     }
 

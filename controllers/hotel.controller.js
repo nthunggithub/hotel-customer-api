@@ -2,6 +2,16 @@
 
 const { query } = require("../models/querydb");
 
+Date.prototype.yyyymmdd = function () {
+    var mm = this.getMonth() + 1; // getMonth() is zero-based
+    var dd = this.getDate();
+
+    return [this.getFullYear(),
+    (mm > 9 ? '' : '0') + mm,
+    (dd > 9 ? '' : '0') + dd
+    ].join('/');
+};
+
 exports.getListRoom = async (req, res) => {
     try {
         //LIMIT 10 OFFSET 15
@@ -13,16 +23,6 @@ exports.getListRoom = async (req, res) => {
 
 };
 
-// exports.searchRoom = async (req, res) => {
-//     try {
-//         const { arrivalDate, departureDate, adults, childs, cost, status } = req.body;
-//         let peopleMax = parseInt(req.query.peoplenumber);
-//         let result = await query(`select * from phong where SoNguoiToiDa = ${peopleMax}`);
-//         return res.status(200).json({ total: result.length, listRooms: result });
-//     } catch (error) {
-
-//     }
-// };
 const isEmpty = value =>
     value === undefined ||
     value === null ||
@@ -30,7 +30,7 @@ const isEmpty = value =>
     (typeof value === "string" && value.trim().length === 0);
 
 
-exports.searchRoom = async(req, res) => {
+exports.searchRoom = async (req, res) => {
     try {
         let { arrivalDate, departureDate, beginPrice, endPrice } = req.body;
         let errCount = 0;
@@ -101,14 +101,14 @@ exports.getRoomInfo = async (req, res) => {
 
 exports.postcomment = async (req, res) => {
     try {
-        await query(`insert into binhluan set NgayBL = "${new Date().toISOString().substring(0, 10)}", NoiDung = "${req.body.comment}", MaKH = ${req.body.MaKH}, MaP = ${req.body.MaP} `)
-        res.status(200).json({message: "Bình luận thành công"})
+        await query(`insert into binhluan set NgayBL = "${new Date().yyyymmdd()}", NoiDung = "${req.body.comment}", MaKH = ${req.body.MaKH}, MaP = ${req.body.MaP} `)
+        res.status(200).json({ message: "Bình luận thành công" })
     } catch (error) {
         res.status(200).json({ message: "lỗi bình luận" })
     }
 }
 
-exports.getcommentlist = async (req, res)=>{
+exports.getcommentlist = async (req, res) => {
     try {
         let data = await query(`select bl.NgayBL, bl.NoiDung, tk.TenTaiKhoan from binhluan as bl, khachang as kh, taikhoan as tk where bl.MaP = ${req.params.id} and bl.MaKH = kh.MaKH and kh.MaTK = tk.MaTK  `)
         res.status(200).json(data);
@@ -117,9 +117,9 @@ exports.getcommentlist = async (req, res)=>{
     }
 }
 
-exports.getphieudatphong = async (req, res) =>{
+exports.getbills = async (req, res) => {
     try {
-        let data = await query(`select * from phieudatphong as pdp, ctphieudatphong as ctp where pdp.MaKH = ${req.params.id} and pdp.MaPDP = ctp.MaPDP `)
+        let data = await query(`select p.TenP, pdp.NgayTao, pdp.NgayNhanPhong, pdp.NgayTraPhong, pdp.TongTien, pdp.TrangThai, ctp.SoNguoiLon, ctp.SoTreEm from phieudatphong as pdp, ctphieudatphong as ctp, phong as p where pdp.MaKH = ${req.user.MaKH} and pdp.MaPDP = ctp.MaPDP and ctp.MaP = p.MaP `)
         res.status(200).json(data)
     } catch (error) {
         res.status(200).json({ message: "Lỗi lấy danh sách phiếu đặt phòng" })

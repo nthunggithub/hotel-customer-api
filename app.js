@@ -28,6 +28,7 @@ var strategy = new JwtStrategy(jwtOptions, async function (jwt_payload, next) {
     // var user = getUser({ id: jwt_payload.id });
     let user = await query(`select * from taikhoan as tk, khachang as kh where tk.MaTK = ${jwt_payload.id} and tk.TrangThai = ${1} and tk.MaTK = kh.MaTK`);
     if (user.length) {
+      //req.user = user[0];
       next(null, user[0]);
     } else {
       next(null, false);

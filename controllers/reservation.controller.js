@@ -1,6 +1,15 @@
 
 const { query } = require("../models/querydb");
 
+Date.prototype.yyyymmdd = function () {
+    var mm = this.getMonth() + 1; // getMonth() is zero-based
+    var dd = this.getDate();
+
+    return [this.getFullYear(),
+    (mm > 9 ? '' : '0') + mm,
+    (dd > 9 ? '' : '0') + dd
+    ].join('/');
+};
 exports.createReservation = async (req, res) => {
     try {
         // truyen vao objectid cua room va user qua body
@@ -46,7 +55,7 @@ exports.createReservation = async (req, res) => {
             res.status(400).json({ errorCount: errorCount, error: error });
         } else {
 
-            let PDPInsert = await query(`insert into phieudatphong set NgayTao = "${new Date().toISOString().substring(0,10)}", NgayNhanPhong = "${arrivalDate}", NgayTraPhong = "${departureDate}", TongTien = ${cost}, TrangThai = ${status}, MaKH = ${userId}`)
+            let PDPInsert = await query(`insert into phieudatphong set NgayTao = "${new Date().yyyymmdd()}", NgayNhanPhong = "${arrivalDate}", NgayTraPhong = "${departureDate}", TongTien = ${cost}, TrangThai = ${status}, MaKH = ${userId}`)
             await query(`insert into ctphieudatphong set MaPDP = ${PDPInsert.insertId}, MaP = ${roomId}, SoNguoiLon =${adults}, SoTreEm = ${childs}`)
 
             res.status(200).json({ message: "Đặt phòng thành công" });
