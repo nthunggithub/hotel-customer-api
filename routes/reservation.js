@@ -10,4 +10,10 @@ router.post(
   ResersvationController.createReservation
 )
 
+router.post(
+  "/api/updateBills",
+  // passport.authenticate('jwt', { session: false }),
+  ResersvationController.updateBills
+)
+
 module.exports = router;

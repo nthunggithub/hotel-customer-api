@@ -127,7 +127,7 @@ exports.getcommentlist = async (req, res) => {
 
 exports.getbills = async (req, res) => {
     try {
-        let data = await query(`select p.TenP, pdp.NgayTao, pdp.NgayNhanPhong, pdp.NgayTraPhong, pdp.TongTien, pdp.TrangThai, ctp.SoNguoiLon, ctp.SoTreEm from phieudatphong as pdp, ctphieudatphong as ctp, phong as p where pdp.MaKH = ${req.user.MaKH} and pdp.MaPDP = ctp.MaPDP and ctp.MaP = p.MaP `)
+        let data = await query(`select pdp.MaPDP, p.GiaThue, p.KhuyenMai, p.MaP, p.TenP, pdp.NgayTao, pdp.NgayNhanPhong, pdp.NgayTraPhong, pdp.TongTien, pdp.TrangThai, ctp.SoNguoiLon, ctp.SoTreEm from phieudatphong as pdp, ctphieudatphong as ctp, phong as p where pdp.MaKH = ${req.user.MaKH} and pdp.MaPDP = ctp.MaPDP and ctp.MaP = p.MaP `)
         res.status(200).json(data)
     } catch (error) {
         res.status(200).json({ message: "Lỗi lấy danh sách phiếu đặt phòng" })
