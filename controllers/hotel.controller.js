@@ -15,7 +15,7 @@ Date.prototype.yyyymmdd = function () {
 exports.getListRoom = async (req, res) => {
     try {
         //LIMIT 10 OFFSET 15
-        let listRooms = await query(`select * from phong`)
+        let listRooms = await query(`select * from phong where TrangThai = ${1}`)
         return res.status(200).json({ total: listRooms.length, listRooms: listRooms });
     } catch (error) {
 
@@ -65,7 +65,7 @@ exports.searchRoom = async (req, res) => {
             return res.status(500).json({ message: "Chọn ngày ở quá khứ" });
         }
 
-        let roomList = await query(`select * from phong where GiaThue >= ${beginPrice} && GiaThue <= ${endPrice}`)
+        let roomList = await query(`select * from phong where GiaThue >= ${beginPrice} && GiaThue <= ${endPrice} && TrangThai = ${1}`)
         let result = [];
 
         for (var i = 0; i < roomList.length; i++) {
