@@ -63,7 +63,7 @@ exports.createReservation = async (req, res) => {
         if (!isFree) {
             error.room = 'Room is not free';
             errorCount++;
-            return res.status(200).json({ message: "Đặt phòng đã được đặt" });
+            return res.status(200).json({ message: "Phòng không có sẵn" });
         } else {
 
             let PDPInsert = await query(`insert into phieudatphong set NgayTao = "${new Date().yyyymmdd()}", NgayNhanPhong = "${arrivalDate}", NgayTraPhong = "${departureDate}", TongTien = ${cost}, TrangThai = ${status}, MaKH = ${userId}`)
