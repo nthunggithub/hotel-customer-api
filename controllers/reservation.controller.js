@@ -23,20 +23,28 @@ exports.createReservation = async (req, res) => {
         if (departureDateGetTime - arrivalDateGetTime < 0) {
             error.date = 'Cannot book fewer than 1 days';
             errorCount++;
-            return res.status(400).json({ message: "Chọn ngày bắt đầu lớn hơn ngày kết thúc" });
+            return res.status(200).json({ message: "Chọn ngày bắt đầu lớn hơn ngày kết thúc" });
         }
 
-        // if (departureDateGetTime - arrivalDateGetTime > 2592000000) {
-        //     error.date = 'Cannot book more than 30 days';
-        //     errorCount++;
-        //     return res.status(400).json({ errorCount: errorCount, error: error });
-        // }
+        let currentDate = new Date();
+        if (arrivalDateGetTime <= new Date(currentDate.setDate(currentDate.getDate() - 1)).getTime()) {
+            return res.status(500).json({ message: "Chọn ngày ở quá khứ" });
+        }
 
         let room = await query(`select * from phong where MaP = ${roomId} `)
         if (room.length == 0) {
-            error.roomId = 'Error when find room';
-            errorCount++;
-            return res.status(400).json({ errorCount: errorCount, error: error });
+            return res.status(200).json({ message: "Không tìm thấy phòng" });
+        }
+
+        try {
+            if (room[0].SoNguoiToiDa < parseInt(childs) + parseInt(adults)) {
+                return res.status(200).json({ message: "Đã quá số người tối đa là: " + room[0].SoNguoiToiDa });
+            }
+            if(parseInt(childs) + parseInt(adults) === 0){
+                return res.status(200).json({ message: "Không có người ở"});
+            }
+        } catch (error) {
+
         }
 
         let roomList = await query(`select * from ctphieudatphong as ctp, phieudatphong as p where ctp.MaP = ${roomId} and ctp.MaPDP = p.MaPDP`);
@@ -45,20 +53,23 @@ exports.createReservation = async (req, res) => {
             let startDate = roomList[j].NgayNhanPhong;
             let endDate = roomList[j].NgayTraPhong;
             //lai lai dieu kien if
-            if (startDate < departureDate && endDate > arrivalDate) {
+            const startDateGetTime = new Date(startDate).getTime();
+            const endDateGetTime = new Date(endDate).getTime();
+            if ((startDateGetTime <= arrivalDateGetTime && endDateGetTime >= arrivalDateGetTime) || (startDateGetTime <= departureDateGetTime && endDateGetTime >= departureDateGetTime)) {
                 isFree = false;
+                break;
             }
         }
         if (!isFree) {
             error.room = 'Room is not free';
             errorCount++;
-            res.status(400).json({ errorCount: errorCount, error: error });
+            return res.status(200).json({ message: "Đặt phòng đã được đặt" });
         } else {
 
             let PDPInsert = await query(`insert into phieudatphong set NgayTao = "${new Date().yyyymmdd()}", NgayNhanPhong = "${arrivalDate}", NgayTraPhong = "${departureDate}", TongTien = ${cost}, TrangThai = ${status}, MaKH = ${userId}`)
             await query(`insert into ctphieudatphong set MaPDP = ${PDPInsert.insertId}, MaP = ${roomId}, SoNguoiLon =${adults}, SoTreEm = ${childs}`)
 
-            res.status(200).json({ message: "Đặt phòng thành công" });
+            return res.status(200).json({ message: "Đặt phòng thành công" });
         }
     } catch (error) {
         res.status(200).json({ message: error.message });

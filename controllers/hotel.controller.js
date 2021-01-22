@@ -52,24 +52,32 @@ exports.searchRoom = async (req, res) => {
             error.endPrice = 'No endPrice';
         }
 
-        if (errCount) return res.status(200).json({ errorCount: errCount, error: error });
+        if (errCount) return res.status(500).json({ message :  error.arrivalDate + error.departureDate + error.beginPrice + error.endPrice});
 
-        const arrival = new Date(arrivalDate).getTime();
-        const departure = new Date(departureDate).getTime();
-        console.log(arrival + ' ' + departure);
-        //const persons = Number(adults) + Number(childs);
+        const arrivalDateGetTime = new Date(arrivalDate).getTime();
+        const departureDateGetTime = new Date(departureDate).getTime();
+
+        if (departureDateGetTime - arrivalDateGetTime < 0) {
+            return res.status(500).json({ message: "Chọn ngày bắt đầu lớn hơn ngày kết thúc" });
+        }
+        let currentDate = new Date();
+        if(arrivalDateGetTime <= new Date(currentDate.setDate(currentDate.getDate() - 1)).getTime()){
+            return res.status(500).json({ message: "Chọn ngày ở quá khứ" });
+        }
 
         let roomList = await query(`select * from phong where GiaThue >= ${beginPrice} && GiaThue <= ${endPrice}`)
         let result = [];
+
         for (var i = 0; i < roomList.length; i++) {
             let isFree = true;
             let PdPListWith1MaP = await query(`select * from ctphieudatphong as ctp, phieudatphong as p where ctp.MaP = ${roomList[i].MaP} and ctp.MaPDP = p.MaPDP`);
 
             for (var j = 0; j < PdPListWith1MaP.length; j++) {
-                let startDate = PdPListWith1MaP[j].NgayNhanPhong.getTime();
-                let endDate = PdPListWith1MaP[j].NgayTraPhong.getTime();
-                if ((startDate != undefined && startDate < departure) || (endDate != undefined && endDate > arrival)) {
+                let startDateGetTime = PdPListWith1MaP[j].NgayNhanPhong.getTime();
+                let endDateGetTime = PdPListWith1MaP[j].NgayTraPhong.getTime();
+                if ((startDateGetTime <= arrivalDateGetTime && endDateGetTime >= arrivalDateGetTime) || (startDateGetTime <= departureDateGetTime && endDateGetTime >= departureDateGetTime)) {
                     isFree = false;
+                    break;
                 }
             }
             if (isFree) result.push(roomList[i]);
