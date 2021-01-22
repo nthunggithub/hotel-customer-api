@@ -31,7 +31,7 @@ exports.createReservation = async (req, res) => {
             return res.status(500).json({ message: "Chọn ngày ở quá khứ" });
         }
 
-        let room = await query(`select * from phong where MaP = ${roomId} `)
+        let room = await query(`select * from phong where MaP = ${roomId} && TrangThai = ${1}`)
         if (room.length == 0) {
             return res.status(200).json({ message: "Không tìm thấy phòng" });
         }
