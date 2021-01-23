@@ -23,25 +23,25 @@ exports.createReservation = async (req, res) => {
         if (departureDateGetTime - arrivalDateGetTime < 0) {
             error.date = 'Cannot book fewer than 1 days';
             errorCount++;
-            return res.status(200).json({ message: "Chọn ngày bắt đầu lớn hơn ngày kết thúc" });
+            return res.status(400).json({ message: "Chọn ngày bắt đầu lớn hơn ngày kết thúc" });
         }
 
         let currentDate = new Date();
         if (arrivalDateGetTime <= new Date(currentDate.setDate(currentDate.getDate() - 1)).getTime()) {
-            return res.status(500).json({ message: "Chọn ngày ở quá khứ" });
+            return res.status(400).json({ message: "Chọn ngày ở quá khứ" });
         }
 
         let room = await query(`select * from phong where MaP = ${roomId} && TrangThai = ${1}`)
         if (room.length == 0) {
-            return res.status(200).json({ message: "Không tìm thấy phòng" });
+            return res.status(400).json({ message: "Không tìm thấy phòng" });
         }
 
         try {
-            if (room[0].SoNguoiToiDa < parseInt(childs) + parseInt(adults)) {
-                return res.status(200).json({ message: "Đã quá số người tối đa là: " + room[0].SoNguoiToiDa });
-            }
+            // if (room[0].SoNguoiToiDa < parseInt(childs) + parseInt(adults)) {
+            //     return res.status(200).json({ message: "Đã quá số người tối đa là: " + room[0].SoNguoiToiDa });
+            // }
             if (parseInt(childs) + parseInt(adults) === 0) {
-                return res.status(200).json({ message: "Không có người ở" });
+                return res.status(400).json({ message: "Không có người ở" });
             }
         } catch (error) {
 
@@ -63,7 +63,7 @@ exports.createReservation = async (req, res) => {
         if (!isFree) {
             error.room = 'Room is not free';
             errorCount++;
-            return res.status(200).json({ message: "Phòng không có sẵn" });
+            return res.status(400).json({ message: "Phòng không có sẵn" });
         } else {
 
             let PDPInsert = await query(`insert into phieudatphong set NgayTao = "${new Date().yyyymmdd()}", NgayNhanPhong = "${arrivalDate}", NgayTraPhong = "${departureDate}", TongTien = ${cost}, TrangThai = ${status}, MaKH = ${userId}`)
@@ -72,7 +72,7 @@ exports.createReservation = async (req, res) => {
             return res.status(200).json({ message: "Đặt phòng thành công" });
         }
     } catch (error) {
-        res.status(200).json({ message: error.message });
+        res.status(400).json({ message: error.message });
     }
 
 };
